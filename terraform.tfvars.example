@@ -1,0 +1,32 @@
+# Resource Group Configuration
+resource_group_name = "az-k8s-rg"
+location            = "East US 2"
+
+# AKS Cluster Configuration
+cluster_name = "az-k8s-cluster"
+dns_prefix   = "aksmultienv"
+
+# Default Node Pool Configuration
+default_node_pool = {
+  name       = "system"
+  node_count = 1
+  vm_size    = "Standard_D2_v2"
+}
+
+# Production Node Pool Configuration
+prod_node_pool = {
+  vm_size    = "Standard_DS3_v2"
+  node_count = 1
+}
+
+# Dev/Stage Node Pool Configuration
+devstage_node_pool = {
+  vm_size    = "Standard_DS3_v2"
+  node_count = 1
+}
+
+# Common Tags
+common_tags = {
+  ManagedBy = "Terraform"
+  Project   = "AKS-MultiEnv"
+}
