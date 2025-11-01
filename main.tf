@@ -1,12 +1,12 @@
 resource "azurerm_resource_group" "az-k8s-rg" {
-  name     = "az-k8s-group-rg"
+  name     = "az-k8s-rg"
   location = "East US 2"
 }
 
 resource "azurerm_kubernetes_cluster" "az-k8s-cluster" {
   name                = "az-k8s-cluster"
-  location            = azurerm_resource_group.az-k8s-group-rg.location
-  resource_group_name = azurerm_resource_group.az-k8s-group-rg.name
+  location            = azurerm_resource_group.az-k8s-rg.location
+  resource_group_name = azurerm_resource_group.az-k8s-rg.name
   dns_prefix          = "aksmultienv"
 
   default_node_pool {
