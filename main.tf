@@ -182,3 +182,13 @@ module "aws_eks_devstage_node_group" {
     Environment = "non-production"
   }
 }
+
+## TFSTATE
+
+terraform {
+  backend "s3" {
+    bucket = "final-project-inge-soft-tf"
+    key    = "project-inge-soft/terraform.tfstate"
+    region = "us-east-2"
+  }
+}
