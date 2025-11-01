@@ -1,58 +1,60 @@
-resource "azurerm_resource_group" "az-k8s-rg" {
-  name     = "az-k8s-rg"
-  location = "East US 2"
+module "resource_group" {
+  source = "./modules/resource-group"
+
+  name     = var.resource_group_name
+  location = var.location
+  tags     = var.common_tags
 }
 
-resource "azurerm_kubernetes_cluster" "az-k8s-cluster" {
-  name                = "az-k8s-cluster"
-  location            = azurerm_resource_group.az-k8s-rg.location
-  resource_group_name = azurerm_resource_group.az-k8s-rg.name
-  dns_prefix          = "aksmultienv"
+module "aks_cluster" {
+  source = "./modules/aks-cluster"
 
-  default_node_pool {
-    name       = "system"
-    node_count = 1
-    vm_size    = "Standard_D2_v2"
-  }
+  cluster_name        = var.cluster_name
+  location            = module.resource_group.location
+  resource_group_name = module.resource_group.name
+  dns_prefix          = var.dns_prefix
 
-  identity {
-    type = "SystemAssigned"
-  }
+  default_node_pool = var.default_node_pool
 
-  tags = {
-    Environment = "multi"
-    Purpose     = "dev-stage-prod"
-  }
+  tags = merge(
+    var.common_tags,
+    {
+      Environment = "multi"
+      Purpose     = "dev-stage-prod"
+    }
+  )
 }
 
+module "prod_node_pool" {
+  source = "./modules/aks-node-pool"
 
-resource "azurerm_kubernetes_cluster_node_pool" "prod" {
   name                  = "prod"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.az-k8s-cluster.id
-  vm_size               = "Standard_DS3_v2"
-  node_count            = 1
-
-  tags = {
-    Environment = "production"
-  }
+  kubernetes_cluster_id = module.aks_cluster.id
+  vm_size               = var.prod_node_pool.vm_size
+  node_count            = var.prod_node_pool.node_count
 
   node_taints = [
     "environment=production:NoSchedule"
   ]
-}
-
-
-resource "azurerm_kubernetes_cluster_node_pool" "devstage" {
-  name                  = "devstage"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.az-k8s-cluster.id
-  vm_size               = "Standard_DS3_v2"
-  node_count            = 1
 
   tags = {
-    Environment = "non-production"
+    Environment = "production"
   }
+}
+
+module "devstage_node_pool" {
+  source = "./modules/aks-node-pool"
+
+  name                  = "devstage"
+  kubernetes_cluster_id = module.aks_cluster.id
+  vm_size               = var.devstage_node_pool.vm_size
+  node_count            = var.devstage_node_pool.node_count
 
   node_taints = [
     "environment=non-production:NoSchedule"
   ]
+
+  tags = {
+    Environment = "non-production"
+  }
 }
